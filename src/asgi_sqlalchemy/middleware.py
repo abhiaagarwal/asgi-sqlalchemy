@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from asgi_sqlalchemy.context import DatabaseContext
-
 if TYPE_CHECKING:
     from asgiref.typing import (
         ASGI3Application,
@@ -13,6 +11,8 @@ if TYPE_CHECKING:
         ASGISendCallable,
         Scope,
     )
+
+    from asgi_sqlalchemy.context import DatabaseContext
 
 __all__ = ("SessionMiddleware",)
 
@@ -30,7 +30,7 @@ class SessionMiddleware:
         if scope["type"] != "http" or db is None:
             await self.app(scope, receive, send)
             return
-        db = cast(DatabaseContext, db)
+        db = cast("DatabaseContext", db)
         async with db.session_maker() as session:
             scope["db_session"] = session  # type: ignore  # noqa: PGH003
             try:
