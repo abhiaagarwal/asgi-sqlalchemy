@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from contextlib import AbstractAsyncContextManager
 from typing import TYPE_CHECKING, Any
 
@@ -11,7 +12,11 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from typing_extensions import Self, override
+
+if sys.version_info < (3, 12):
+    from typing_extensions import Self, override
+else:
+    from typing import Self, override
 
 if TYPE_CHECKING:
     from types import TracebackType
