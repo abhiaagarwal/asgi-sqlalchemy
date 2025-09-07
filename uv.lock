@@ -52,16 +52,19 @@ wheels = [
 
 [[package]]
 name = "asgi-sqlalchemy"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "sqlalchemy" },
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
 ]
 
 [package.optional-dependencies]
 fastapi = [
     { name = "fastapi" },
+]
+starlette = [
+    { name = "starlette" },
 ]
 type-hints = [
     { name = "asgiref" },
@@ -81,6 +84,7 @@ dev = [
     { name = "pytest-cov" },
     { name = "pytest-xdist" },
     { name = "ruff" },
+    { name = "starlette" },
     { name = "testcontainers" },
     { name = "uvloop" },
 ]
@@ -90,9 +94,10 @@ requires-dist = [
     { name = "asgiref", marker = "extra == 'type-hints'", specifier = ">=3.8.1" },
     { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.106" },
     { name = "sqlalchemy", specifier = ">=2" },
-    { name = "typing-extensions", specifier = ">=4" },
+    { name = "starlette", marker = "extra == 'starlette'", specifier = ">=0.37" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'", specifier = ">=4" },
 ]
-provides-extras = ["fastapi", "type-hints"]
+provides-extras = ["fastapi", "starlette", "type-hints"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -108,6 +113,7 @@ dev = [
     { name = "pytest-cov", specifier = ">=6.0.0" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
     { name = "ruff", specifier = ">=0.8.5" },
+    { name = "starlette", specifier = ">=0.37" },
     { name = "testcontainers", extras = ["postgres"], specifier = ">=4.12.0" },
     { name = "uvloop", specifier = ">=0.21.0" },
 ]
