@@ -17,7 +17,7 @@ from asgi_sqlalchemy.middleware import SessionMiddleware
 
 
 @pytest_asyncio.fixture
-async def fastapi_app(sqlite_database: DatabaseContext) -> AsyncGenerator[FastAPI]:
+async def fastapi_app(database: DatabaseContext) -> AsyncGenerator[FastAPI]:
     """FastAPI fixture with database lifespan."""
 
     class AppState(TypedDict):
@@ -25,10 +25,10 @@ async def fastapi_app(sqlite_database: DatabaseContext) -> AsyncGenerator[FastAP
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[AppState]:  # noqa: ARG001
-        yield {"db": sqlite_database}
+        yield {"db": database}
 
     app = FastAPI(lifespan=lifespan)
-    app.add_middleware(SessionMiddleware)
+    app.add_middleware(SessionMiddleware)  # type: ignore  # noqa: PGH003
     yield app
     del app.router
 
@@ -61,10 +61,10 @@ async def test_successful_handler(fastapi_app: FastAPI, client: AsyncClient) -> 
 
 
 async def test_database_unhandled_rollback(
-    fastapi_app: FastAPI, client: AsyncClient, sqlite_database: DatabaseContext
+    fastapi_app: FastAPI, client: AsyncClient, database: DatabaseContext
 ) -> None:
     """Tests that an unhandled exception in our database rolls back."""
-    async with sqlite_database.session_maker() as session:
+    async with database.session_maker() as session:
         await session.execute(
             text("""CREATE TABLE IF NOT EXISTS temp_test_table1 (
                 value INTEGER
@@ -85,17 +85,17 @@ async def test_database_unhandled_rollback(
     with pytest.raises(ValueError, match=error):
         await client.post("/error1")
 
-    async with sqlite_database.session_maker() as session:
+    async with database.session_maker() as session:
         result = await session.execute(text("SELECT COUNT(*) FROM temp_test_table1"))
         count = result.scalar()
         assert count == 0
 
 
 async def test_database_doesnt_rollback(
-    fastapi_app: FastAPI, client: AsyncClient, sqlite_database: DatabaseContext
+    fastapi_app: FastAPI, client: AsyncClient, database: DatabaseContext
 ) -> None:
     """Tests that a handled exception in our database rolls back."""
-    async with sqlite_database.session_maker() as session:
+    async with database.session_maker() as session:
         await session.execute(
             text("""CREATE TABLE IF NOT EXISTS temp_test_table2 (
                 value INTEGER
@@ -117,17 +117,17 @@ async def test_database_doesnt_rollback(
     assert response.status_code == 303
     assert response.json() == {"detail": error}
 
-    async with sqlite_database.session_maker() as session:
+    async with database.session_maker() as session:
         result = await session.execute(text("SELECT COUNT(*) FROM temp_test_table2"))
         count = result.scalar()
         assert count == 1
 
 
 async def test_database_manual_rollback(
-    fastapi_app: FastAPI, client: AsyncClient, sqlite_database: DatabaseContext
+    fastapi_app: FastAPI, client: AsyncClient, database: DatabaseContext
 ) -> None:
     """Tests that a handled exception with a manual rollback rolls back."""
-    async with sqlite_database.session_maker() as session:
+    async with database.session_maker() as session:
         await session.execute(
             text("""CREATE TABLE IF NOT EXISTS temp_test_table3 (
                 value INTEGER
@@ -150,7 +150,7 @@ async def test_database_manual_rollback(
     assert response.status_code == 303
     assert response.json() == {"detail": error}
 
-    async with sqlite_database.session_maker() as session:
+    async with database.session_maker() as session:
         result = await session.execute(text("SELECT COUNT(*) FROM temp_test_table3"))
         count = result.scalar()
         assert count == 0

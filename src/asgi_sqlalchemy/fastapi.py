@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 if find_spec("fastapi") is not None:
     from fastapi import Depends, Request
-else:
+else:  # pragma: no cover
     msg = "FastAPI not found, please install asgi-sqlalchemy[fastapi]"
     raise ImportError(msg)
 
