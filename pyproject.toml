@@ -1,6 +1,6 @@
 [project]
 name = "asgi-sqlalchemy"
-version = "0.1.1"
+version = "0.2.0"
 description = "Pure ASGI Database middleware."
 readme = "README.md"
 license = "MIT"
